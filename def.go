@@ -45,6 +45,7 @@ const (
 	__ATTR_ERROR                    attribute.Key = "error"
 	__ATTR_ARGV                     attribute.Key = "argv"
 	__ATTR_REPLY                    attribute.Key = "reply"
+	__ATTR_VARS                     attribute.Key = "vars"
 
 	__ATTR_ENVIRONMENT  attribute.Key = "environment"
 	__ATTR_OS           attribute.Key = "os"
@@ -159,6 +160,10 @@ func OtelTracerFromTracer(tr *SeverityTracer) trace.Tracer {
 }
 
 func Argv() VarsBuilder {
+	return make(VarsBuilder)
+}
+
+func Vars() VarsBuilder {
 	return make(VarsBuilder)
 }
 

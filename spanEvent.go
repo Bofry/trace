@@ -47,7 +47,7 @@ func (NopEvent) Tags(tags ...KeyValue) {
 
 // Vars implements SpanEvent
 func (NopEvent) Vars(v interface{}) {
-	panic("unimplemented")
+	// do nothing
 }
 
 type SeverityEvent struct {
@@ -113,7 +113,7 @@ func (s SeverityEvent) Vars(v interface{}) {
 	if !s.flushed {
 		s.flushed = true
 
-		tags := expandObject(string(__ATTR_ARGV), v)
+		tags := expandObject(string(__ATTR_VARS), v)
 		s.tags = append(s.tags, tags...)
 	}
 }
