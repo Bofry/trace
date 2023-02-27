@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 	"time"
-	"trace"
 
+	"github.com/Bofry/trace"
 	"go.opentelemetry.io/otel/propagation"
 )
 
