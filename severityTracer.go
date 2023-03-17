@@ -12,16 +12,19 @@ type SeverityTracer struct {
 	tr trace.Tracer
 }
 
-func NewSeverityTracer(tr trace.Tracer) *SeverityTracer {
-	return &SeverityTracer{
-		tr: tr,
-	}
-}
-
 func (s *SeverityTracer) Open(
 	ctx context.Context,
 	spanName string,
-	opts ...trace.SpanStartOption) SeveritySpanContext {
+	opts ...trace.SpanStartOption) *SeveritySpan {
+
+	opts = append(opts, trace.WithNewRoot())
+	return s.Start(ctx, spanName, opts...)
+}
+
+func (s *SeverityTracer) Start(
+	ctx context.Context,
+	spanName string,
+	opts ...trace.SpanStartOption) *SeveritySpan {
 
 	if ctx == nil {
 		ctx = context.Background()
@@ -33,30 +36,18 @@ func (s *SeverityTracer) Open(
 	}
 }
 
-func (s *SeverityTracer) Start(
-	spx SeveritySpanContext,
-	spanName string,
-	opts ...trace.SpanStartOption) SeveritySpanContext {
-
-	ctx, span := s.tr.Start(spx.Context(), spanName, opts...)
-	return &SeveritySpan{
-		span: span,
-		ctx:  ctx,
-	}
-}
-
 func (s *SeverityTracer) Link(
 	ctx context.Context,
 	link Link,
 	spanName string,
-	opts ...trace.SpanStartOption) SeveritySpanContext {
+	opts ...trace.SpanStartOption) *SeveritySpan {
 
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	ctx = trace.ContextWithSpanContext(ctx, link.SpanContext)
 	opts = append(opts, trace.WithLinks(link))
-	return s.Open(ctx, spanName, opts...)
+	return s.Start(ctx, spanName, opts...)
 }
 
 func (s *SeverityTracer) ExtractWithPropagator(
@@ -64,7 +55,7 @@ func (s *SeverityTracer) ExtractWithPropagator(
 	propagator propagation.TextMapPropagator,
 	carrier propagation.TextMapCarrier,
 	spanName string,
-	opts ...trace.SpanStartOption) SeveritySpanContext {
+	opts ...trace.SpanStartOption) *SeveritySpan {
 
 	if ctx == nil {
 		ctx = context.Background()
@@ -73,14 +64,14 @@ func (s *SeverityTracer) ExtractWithPropagator(
 		propagator = otel.GetTextMapPropagator()
 	}
 	ctx = propagator.Extract(ctx, carrier)
-	return s.Open(ctx, spanName, opts...)
+	return s.Start(ctx, spanName, opts...)
 }
 
 func (s *SeverityTracer) Extract(
 	ctx context.Context,
 	carrier propagation.TextMapCarrier,
 	spanName string,
-	opts ...trace.SpanStartOption) SeveritySpanContext {
+	opts ...trace.SpanStartOption) *SeveritySpan {
 
 	if ctx == nil {
 		ctx = context.Background()

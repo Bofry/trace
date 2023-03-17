@@ -10,40 +10,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type SeveritySpanContext interface {
-	HasSpanID() bool
-	HasTraceID() bool
-	Context() context.Context
-	SpanID() trace.SpanID
-	TraceFlags() trace.TraceFlags
-	TraceID() trace.TraceID
-	TraceState() trace.TraceState
-
-	Link() Link
-	Inject(p propagation.TextMapPropagator, c propagation.TextMapCarrier)
-
-	End(opts ...trace.SpanEndOption)
-
-	Argv(v interface{})
-	Reply(code ReplyCode, v interface{})
-	Tags(tags ...KeyValue)
-
-	Debug(message string, v ...interface{}) SpanEvent
-	Info(message string, v ...interface{}) SpanEvent
-	Notice(message string, v ...interface{}) SpanEvent
-	Warning(reason string, v ...interface{}) SpanEvent
-	Err(err error)
-	Crit(reason string, v ...interface{}) SpanEvent
-	Alert(reason string, v ...interface{}) SpanEvent
-	Emerg(reason string, v ...interface{}) SpanEvent
-
-	otelSpan() trace.Span
-}
-
-var (
-	_ SeveritySpanContext = new(SeveritySpan)
-)
-
 type SeveritySpan struct {
 	span      trace.Span
 	ctx       context.Context
@@ -51,13 +17,6 @@ type SeveritySpan struct {
 	err       error
 
 	events []SpanEvent
-}
-
-func NewSeveritySpan(span trace.Span, ctx context.Context) *SeveritySpan {
-	return &SeveritySpan{
-		span: span,
-		ctx:  ctx,
-	}
 }
 
 // Context implements SpanContext
@@ -167,7 +126,7 @@ func (s *SeveritySpan) Err(err error) {
 // Debug implements SpanContext
 func (s *SeveritySpan) Debug(message string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  DEBUG,
@@ -182,7 +141,7 @@ func (s *SeveritySpan) Debug(message string, v ...interface{}) SpanEvent {
 // Info implements SpanContext
 func (s *SeveritySpan) Info(message string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  INFO,
@@ -197,7 +156,7 @@ func (s *SeveritySpan) Info(message string, v ...interface{}) SpanEvent {
 // Notice implements SpanContext
 func (s *SeveritySpan) Notice(message string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  NOTICE,
@@ -212,7 +171,7 @@ func (s *SeveritySpan) Notice(message string, v ...interface{}) SpanEvent {
 // Warning implements SpanContext
 func (s *SeveritySpan) Warning(reason string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  WARN,
@@ -227,7 +186,7 @@ func (s *SeveritySpan) Warning(reason string, v ...interface{}) SpanEvent {
 // Crit implements SpanContext
 func (s *SeveritySpan) Crit(reason string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  CRIT,
@@ -242,7 +201,7 @@ func (s *SeveritySpan) Crit(reason string, v ...interface{}) SpanEvent {
 // Alert implements SpanContext
 func (s *SeveritySpan) Alert(reason string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  ALERT,
@@ -257,7 +216,7 @@ func (s *SeveritySpan) Alert(reason string, v ...interface{}) SpanEvent {
 // Emerg implements SpanContext
 func (s *SeveritySpan) Emerg(reason string, v ...interface{}) SpanEvent {
 	if s.span.IsRecording() {
-		event := SeverityEvent{
+		event := &SeverityEvent{
 			timestamp: time.Now(),
 			span:      s.span,
 			severity:  EMERG,

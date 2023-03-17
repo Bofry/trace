@@ -2,6 +2,7 @@ package trace_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -38,10 +39,10 @@ func Example() {
 
 	tr := tp.Tracer("example-main")
 
-	spx := tr.Open(ctx, "example()", trace.WithNewRoot())
-	defer spx.End()
+	sp := tr.Open(ctx, "example()")
+	defer sp.End()
 
-	spx.Info("example starting")
+	sp.Info("example starting")
 	// Output:
 }
 
@@ -74,22 +75,29 @@ func ExampleSeverityTracer_Start() {
 
 	tr := tp.Tracer("example-main")
 
-	spx := tr.Open(ctx, "example()", trace.WithNewRoot())
-	defer spx.End()
+	sp := tr.Open(ctx, "example()")
+	defer sp.End()
 
-	spx.Info("example starting")
+	sp.Info("example starting")
 
 	// subroutine
-	var bar = func(spx trace.SeveritySpanContext, arg string) {
-		barspx := tr.Start(spx, "bar()")
-		defer barspx.End()
+	var bar = func(ctx context.Context, arg string) {
+		barsp := tr.Start(ctx, "bar()")
+		defer barsp.End()
 
-		barspx.Argv(arg)
-		barspx.Reply(trace.PASS, "OK")
+		barsp.Argv(arg)
+		barsp.Reply(trace.PASS, "OK")
 	}
 
+	ok := trace.IsNoopSeveritySpan(sp)
+	sp.Debug("check IsNoopSeveritySpan()").Tags(
+		trace.Key("IsNoopSeveritySpan").Bool(ok),
+	)
+
+	sp.Debug("log an error").Error(fmt.Errorf("some error"))
+
 	// call subroutine
-	bar(spx, "foo")
+	bar(sp.Context(), "foo")
 	// Output:
 }
 
@@ -122,23 +130,23 @@ func ExampleSeverityTracer_Link() {
 
 	tr := tp.Tracer("example-main")
 
-	spx := tr.Open(ctx, "example()", trace.WithNewRoot())
-	defer spx.End()
+	sp := tr.Open(ctx, "example()")
+	defer sp.End()
 
-	spx.Info("example starting")
+	sp.Info("example starting")
 
 	// subroutine
 	var bar = func(link trace.Link, arg string) {
 		barctx := context.Background() // can use nil instead of context.Background()
-		barspx := tr.Link(barctx, link, "bar()")
-		defer barspx.End()
+		barsp := tr.Link(barctx, link, "bar()")
+		defer barsp.End()
 
-		barspx.Argv(arg)
-		barspx.Reply(trace.PASS, "OK")
+		barsp.Argv(arg)
+		barsp.Err(fmt.Errorf("an error occurred"))
 	}
 
 	// call subroutine
-	bar(spx.Link(), "foo")
+	bar(sp.Link(), "foo")
 	// Output:
 }
 
@@ -176,10 +184,10 @@ func ExampleSeverityTracer_ExtractWithPropagator() {
 
 	tr := tp.Tracer("example-main")
 
-	spx := tr.Open(ctx, "example()", trace.WithNewRoot())
-	defer spx.End()
+	sp := tr.Open(ctx, "example()")
+	defer sp.End()
 
-	spx.Info("example starting")
+	sp.Info("example starting")
 
 	// subroutine
 	var bar = func(carrier propagation.TextMapCarrier, arg string) {
@@ -209,16 +217,16 @@ func ExampleSeverityTracer_ExtractWithPropagator() {
 
 		bartr := bartp.Tracer("example-bar")
 		barctx := context.Background() // can use nil instead of context.Background()
-		barspx := bartr.ExtractWithPropagator(barctx, propagator, carrier, "bar()")
-		defer barspx.End()
+		barsp := bartr.ExtractWithPropagator(barctx, propagator, carrier, "bar()")
+		defer barsp.End()
 
-		barspx.Argv(arg)
-		barspx.Reply(trace.PASS, "OK")
+		barsp.Argv(arg)
+		barsp.Reply(trace.PASS, "OK")
 	}
 
 	carrier := make(propagation.MapCarrier)
 	propagator := trace.GetTextMapPropagator()
-	spx.Inject(propagator, carrier)
+	sp.Inject(propagator, carrier)
 
 	// call subroutine
 	bar(carrier, "foo")

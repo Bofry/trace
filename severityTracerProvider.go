@@ -34,7 +34,7 @@ func (p *SeverityTracerProvider) Shutdown(ctx context.Context) error {
 
 func (p *SeverityTracerProvider) Tracer(name string, opts ...trace.TracerOption) *SeverityTracer {
 	tr := p.provider.Tracer(name, opts...)
-	return NewSeverityTracer(tr)
+	return CreateSeverityTracer(tr)
 }
 
 func JaegerProvider(url string, attrs ...KeyValue) (*SeverityTracerProvider, error) {

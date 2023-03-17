@@ -15,7 +15,7 @@ type SpanEvent interface {
 }
 
 var (
-	_ SpanEvent = SeverityEvent{}
+	_ SpanEvent = &SeverityEvent{}
 	_ SpanEvent = NopEvent(0)
 )
 
@@ -62,12 +62,12 @@ type SeverityEvent struct {
 }
 
 // IsRecording implements SpanEvent
-func (s SeverityEvent) IsRecording() bool {
+func (s *SeverityEvent) IsRecording() bool {
 	return !s.flushed
 }
 
 // Flush implements SpanEvent
-func (s SeverityEvent) Flush() {
+func (s *SeverityEvent) Flush() {
 	if !s.flushed {
 		s.flushed = true
 
@@ -91,28 +91,22 @@ func (s SeverityEvent) Flush() {
 }
 
 // Error implements SpanEvent
-func (s SeverityEvent) Error(err error) {
+func (s *SeverityEvent) Error(err error) {
 	if !s.flushed {
-		s.flushed = true
-
 		s.err = err
 	}
 }
 
 // Tags implements SpanEvent
-func (s SeverityEvent) Tags(tags ...KeyValue) {
+func (s *SeverityEvent) Tags(tags ...KeyValue) {
 	if !s.flushed {
-		s.flushed = true
-
 		s.tags = append(s.tags, tags...)
 	}
 }
 
 // Vars implements SpanEvent
-func (s SeverityEvent) Vars(v interface{}) {
+func (s *SeverityEvent) Vars(v interface{}) {
 	if !s.flushed {
-		s.flushed = true
-
 		tags := expandObject(string(__ATTR_VARS), v)
 		s.tags = append(s.tags, tags...)
 	}

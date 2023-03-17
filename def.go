@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 	_ "unsafe"
@@ -108,6 +109,8 @@ var (
 	globalTracerProvider = defaultTracerProviderValue()
 
 	delegateTraceProviderOnce sync.Once
+
+	noopSpan = trace.SpanFromContext(context.Background())
 )
 
 //go:linkname WithStackTrace go.opentelemetry.io/otel/trace.WithStackTrace
@@ -151,12 +154,20 @@ func Tracer(name string, opts ...trace.TracerOption) *SeverityTracer {
 	return GetTracerProvider().Tracer(name, opts...)
 }
 
-func OtelSpanFromSeveritySpanContext(spx SeveritySpanContext) trace.Span {
-	return spx.otelSpan()
+func OtelSpanFromSeveritySpan(span *SeveritySpan) trace.Span {
+	return span.otelSpan()
 }
 
 func OtelTracerFromTracer(tr *SeverityTracer) trace.Tracer {
 	return tr.otelTracer()
+}
+
+func IsOtelNoopSpan(span trace.Span) bool {
+	return span == noopSpan
+}
+
+func IsNoopSeveritySpan(span *SeveritySpan) bool {
+	return IsOtelNoopSpan(span.otelSpan())
 }
 
 func Argv() VarsBuilder {
@@ -165,6 +176,23 @@ func Argv() VarsBuilder {
 
 func Vars() VarsBuilder {
 	return make(VarsBuilder)
+}
+
+func CreateSeverityTracer(tr trace.Tracer) *SeverityTracer {
+	return &SeverityTracer{
+		tr: tr,
+	}
+}
+
+func CreateSeveritySpan(ctx context.Context) *SeveritySpan {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	span := trace.SpanFromContext(ctx)
+	return &SeveritySpan{
+		span: span,
+		ctx:  ctx,
+	}
 }
 
 func defaultTracerProviderValue() *atomic.Value {
