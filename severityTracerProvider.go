@@ -14,12 +14,6 @@ type SeverityTracerProvider struct {
 	provider trace.TracerProvider
 }
 
-func NewSeverityTracerProvider(provider trace.TracerProvider) *SeverityTracerProvider {
-	return &SeverityTracerProvider{
-		provider: provider,
-	}
-}
-
 func (p *SeverityTracerProvider) TracerProvider() trace.TracerProvider {
 	return p.provider
 }
@@ -53,6 +47,6 @@ func JaegerProvider(url string, attrs ...KeyValue) (*SeverityTracerProvider, err
 		)),
 	)
 
-	stp := NewSeverityTracerProvider(tp)
+	stp := CreateSeverityTracerProvider(tp)
 	return stp, nil
 }

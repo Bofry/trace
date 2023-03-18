@@ -178,6 +178,12 @@ func Vars() VarsBuilder {
 	return make(VarsBuilder)
 }
 
+func CreateSeverityTracerProvider(provider trace.TracerProvider) *SeverityTracerProvider {
+	return &SeverityTracerProvider{
+		provider: provider,
+	}
+}
+
 func CreateSeverityTracer(tr trace.Tracer) *SeverityTracer {
 	return &SeverityTracer{
 		tr: tr,
