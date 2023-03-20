@@ -50,3 +50,9 @@ func JaegerProvider(url string, attrs ...KeyValue) (*SeverityTracerProvider, err
 	stp := CreateSeverityTracerProvider(tp)
 	return stp, nil
 }
+
+func NoopProvider() (*SeverityTracerProvider, error) {
+	tp := trace.NewNoopTracerProvider()
+	stp := CreateSeverityTracerProvider(tp)
+	return stp, nil
+}
