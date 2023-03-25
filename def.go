@@ -33,8 +33,9 @@ const (
 const (
 	__STATUS_CODE_ERROR = "error"
 
-	PASS ReplyCode = ReplyCode("pass")
-	FAIL ReplyCode = ReplyCode("fail")
+	PASS  ReplyCode = ReplyCode("pass")
+	FAIL  ReplyCode = ReplyCode("fail")
+	UNSET ReplyCode = ReplyCode("")
 )
 
 const (
