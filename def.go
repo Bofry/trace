@@ -2,7 +2,6 @@ package trace
 
 import (
 	"context"
-	"sync"
 	"sync/atomic"
 	_ "unsafe"
 
@@ -99,8 +98,16 @@ type (
 		MarshalTracerTag(builder *TracerTagBuilder) error
 	}
 
+	SpanExtractor interface {
+		Extract(ctx context.Context) *SeveritySpan
+	}
+
 	tracerProviderHolder struct {
 		v *SeverityTracerProvider
+	}
+
+	spanExtractorHolder struct {
+		v SpanExtractor
 	}
 )
 
@@ -108,8 +115,7 @@ var (
 	__InvalidKeyValue = attribute.Bool("", false)
 
 	globalTracerProvider = defaultTracerProviderValue()
-
-	delegateTraceProviderOnce sync.Once
+	globalSpanExtractor  = defaultSpanExtractor()
 
 	noopSpan = trace.SpanFromContext(context.Background())
 )
@@ -151,6 +157,19 @@ func SetTracerProvider(tp *SeverityTracerProvider) {
 	}
 }
 
+func GetSpanExtractor() SpanExtractor {
+	return globalSpanExtractor.Load().(spanExtractorHolder).v
+}
+
+func SetSpanExtractor(extractor SpanExtractor) {
+	current := GetSpanExtractor()
+	if current != extractor {
+		globalSpanExtractor.Store(spanExtractorHolder{
+			v: extractor,
+		})
+	}
+}
+
 func Tracer(name string, opts ...trace.TracerOption) *SeverityTracer {
 	return GetTracerProvider().Tracer(name, opts...)
 }
@@ -177,6 +196,33 @@ func Argv() VarsBuilder {
 
 func Vars() VarsBuilder {
 	return make(VarsBuilder)
+}
+
+func SpanFromContext(ctx context.Context, extractors ...SpanExtractor) *SeveritySpan {
+	var span trace.Span
+
+	span = trace.SpanFromContext(ctx)
+	if IsOtelNoopSpan(span) {
+		var ssp *SeveritySpan
+
+		for _, v := range extractors {
+			ssp = v.Extract(ctx)
+			if ssp != nil {
+				return ssp
+			}
+		}
+
+		globalSpanExtractor := GetSpanExtractor()
+		ssp = globalSpanExtractor.Extract(ctx)
+		if ssp != nil {
+			return ssp
+		}
+	}
+
+	return &SeveritySpan{
+		span: span,
+		ctx:  ctx,
+	}
 }
 
 func CreateSeverityTracerProvider(provider trace.TracerProvider) *SeverityTracerProvider {
@@ -208,6 +254,14 @@ func defaultTracerProviderValue() *atomic.Value {
 		v: &SeverityTracerProvider{
 			provider: otel.GetTracerProvider(),
 		},
+	})
+	return v
+}
+
+func defaultSpanExtractor() *atomic.Value {
+	v := &atomic.Value{}
+	v.Store(spanExtractorHolder{
+		v: NewCompositeSpanExtractor(),
 	})
 	return v
 }
