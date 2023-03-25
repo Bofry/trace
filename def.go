@@ -199,28 +199,23 @@ func Vars() VarsBuilder {
 }
 
 func SpanFromContext(ctx context.Context, extractors ...SpanExtractor) *SeveritySpan {
-	var span trace.Span
+	var span *SeveritySpan
 
-	span = trace.SpanFromContext(ctx)
-	if IsOtelNoopSpan(span) {
-		var ssp *SeveritySpan
-
-		for _, v := range extractors {
-			ssp = v.Extract(ctx)
-			if ssp != nil {
-				return ssp
-			}
-		}
-
-		globalSpanExtractor := GetSpanExtractor()
-		ssp = globalSpanExtractor.Extract(ctx)
-		if ssp != nil {
-			return ssp
+	for _, v := range extractors {
+		span = v.Extract(ctx)
+		if span != nil {
+			return span
 		}
 	}
 
+	var globalSpanExtractor = GetSpanExtractor()
+	span = globalSpanExtractor.Extract(ctx)
+	if span != nil {
+		return span
+	}
+
 	return &SeveritySpan{
-		span: span,
+		span: trace.SpanFromContext(ctx),
 		ctx:  ctx,
 	}
 }
