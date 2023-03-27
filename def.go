@@ -100,10 +100,13 @@ const (
 )
 
 type (
-	KeyValue = attribute.KeyValue
-	Key      = attribute.Key
-	SpanKind = trace.SpanKind
-	Link     = trace.Link
+	KeyValue   = attribute.KeyValue
+	Key        = attribute.Key
+	SpanKind   = trace.SpanKind
+	Link       = trace.Link
+	TraceID    = trace.TraceID
+	SpanID     = trace.SpanID
+	TraceFlags = trace.TraceFlags
 
 	ReplyCode string
 
