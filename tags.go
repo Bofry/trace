@@ -62,6 +62,10 @@ func HttpResponse(v string) KeyValue {
 	return __ATTR_HTTP_RESPONSE.String(v)
 }
 
+func HttpStatusCode(v int) KeyValue {
+	return __ATTR_HTTP_STATUS_CODE.Int(v)
+}
+
 func HttpUserAgent(v string) KeyValue {
 	return __ATTR_HTTP_USER_AGENT.String(v)
 }

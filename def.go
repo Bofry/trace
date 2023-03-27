@@ -60,6 +60,7 @@ const (
 	__ATTR_HTTP_REQUEST      attribute.Key = "http.request"
 	__ATTR_HTTP_REQUEST_PATH attribute.Key = "http.request_path"
 	__ATTR_HTTP_RESPONSE     attribute.Key = "http.response"
+	__ATTR_HTTP_STATUS_CODE  attribute.Key = "http.status_code"
 	__ATTR_HTTP_USER_AGENT   attribute.Key = "http.user_agent"
 )
 
