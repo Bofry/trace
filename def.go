@@ -55,6 +55,12 @@ const (
 	__ATTR_VERSION      attribute.Key = "version"
 	__ATTR_FACILITY     attribute.Key = "facility"
 	__ATTR_SERVICE_NAME attribute.Key = semconv.ServiceNameKey
+
+	__ATTR_HTTP_METHOD       attribute.Key = "http.method"
+	__ATTR_HTTP_REQUEST      attribute.Key = "http.request"
+	__ATTR_HTTP_REQUEST_PATH attribute.Key = "http.request_path"
+	__ATTR_HTTP_RESPONSE     attribute.Key = "http.response"
+	__ATTR_HTTP_USER_AGENT   attribute.Key = "http.user_agent"
 )
 
 const (
@@ -84,6 +90,12 @@ const (
 	// SpanKindProducer Spans, there is often no direct relationship between
 	// this Span and the Span that produced the message.
 	SpanKindConsumer = trace.SpanKindConsumer
+)
+
+const (
+	// FlagsSampled is a bitmask with the sampled bit set. A SpanContext
+	// with the sampling bit set means the span is sampled.
+	FlagsSampled = trace.FlagsSampled
 )
 
 type (

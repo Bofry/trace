@@ -46,6 +46,26 @@ func Version(v string) KeyValue {
 	return __ATTR_VERSION.String(v)
 }
 
+func HttpMethod(v string) KeyValue {
+	return __ATTR_HTTP_METHOD.String(v)
+}
+
+func HttpRequest(v string) KeyValue {
+	return __ATTR_HTTP_REQUEST.String(v)
+}
+
+func HttpRequestPath(v string) KeyValue {
+	return __ATTR_HTTP_REQUEST_PATH.String(v)
+}
+
+func HttpResponse(v string) KeyValue {
+	return __ATTR_HTTP_RESPONSE.String(v)
+}
+
+func HttpUserAgent(v string) KeyValue {
+	return __ATTR_HTTP_USER_AGENT.String(v)
+}
+
 func Stringer(name string, o interface{}) KeyValue {
 	return stringer(Key(name), o)
 }
