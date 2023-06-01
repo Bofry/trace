@@ -80,6 +80,32 @@ func (s *SeverityTracer) Extract(
 	return s.ExtractWithPropagator(ctx, propagator, carrier, spanName, opts...)
 }
 
+func (s *SeverityTracer) InjectWithPropagator(
+	ctx context.Context,
+	propagator propagation.TextMapPropagator,
+	carrier propagation.TextMapCarrier) {
+
+	if ctx == nil {
+		return
+	}
+
+	sp := SpanFromContext(ctx)
+	if IsNoopSeveritySpan(sp) {
+		return
+	}
+
+	propagator.Inject(sp.ctx, carrier)
+}
+
+func (s *SeverityTracer) Inject(
+	ctx context.Context,
+	carrier propagation.TextMapCarrier) {
+
+	propagator := otel.GetTextMapPropagator()
+
+	s.InjectWithPropagator(ctx, propagator, carrier)
+}
+
 func (s *SeverityTracer) otelTracer() trace.Tracer {
 	return s.tr
 }

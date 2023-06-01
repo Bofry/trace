@@ -224,6 +224,22 @@ func ExampleSeverityTracer_ExtractWithPropagator() {
 		barsp.Reply(trace.PASS, "OK")
 	}
 
+	/* NOTE: the following statements also can be written as
+	 *
+	 *  way 1:
+	 *    carrier := make(propagation.MapCarrier)
+	 *    propagator := trace.GetTextMapPropagator()
+	 *    propagator.Inject(sp.Context(), carrier)
+	 *
+	 *  way 2:
+	 *    carrier := make(propagation.MapCarrier)
+	 *    propagator := trace.GetTextMapPropagator()
+	 *    tr.InjectWithPropagator(sp.Context(), propagator, carrier)
+	 *
+	 *  way 3:
+	 *    carrier := make(propagation.MapCarrier)
+	 *    tr.Inject(sp.Context(), carrier)
+	 */
 	carrier := make(propagation.MapCarrier)
 	propagator := trace.GetTextMapPropagator()
 	sp.Inject(propagator, carrier)
