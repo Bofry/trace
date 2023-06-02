@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,6 +21,9 @@ import (
 var (
 	__TEST_JAEGER_TRACE_URL string
 	__TEST_JAEGER_QUERY_URL string
+
+	__ENV_FILE        = "trace_test.env"
+	__ENV_FILE_SAMPLE = "trace_test.env.sample"
 
 	__Expected_TestSeveritySpan_Inject = func(t *testing.T, _TRACE_ID string) {
 		query_api_url, err := url.JoinPath(__TEST_JAEGER_QUERY_URL, _TRACE_ID)
@@ -103,12 +107,47 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	godotenv.Load()
+	_, err := os.Stat(__ENV_FILE)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = copyFile(__ENV_FILE_SAMPLE, __ENV_FILE)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	godotenv.Load(__ENV_FILE)
 	{
 		__TEST_JAEGER_TRACE_URL = os.Getenv("JAEGER_TRACE_URL")
 		__TEST_JAEGER_QUERY_URL = os.Getenv("JAEGER_QUERY_URL")
 	}
 	m.Run()
+}
+
+func copyFile(src, dst string) error {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+	_, err = io.Copy(destination, source)
+	return err
 }
 
 func TestSeveritySpan_Inject(t *testing.T) {
