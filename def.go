@@ -66,6 +66,7 @@ const (
 	__ATTR_BROKER_IP      attribute.Key = "broker_ip"
 	__ATTR_CONSUMER_GROUP attribute.Key = "consumer_group"
 	__ATTR_TOPIC          attribute.Key = "topic"
+	__ATTR_MESSAGE_ID     attribute.Key = "message_id"
 	__ATTR_STREAM         attribute.Key = "stream"
 )
 

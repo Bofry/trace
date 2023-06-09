@@ -70,6 +70,26 @@ func HttpUserAgent(v string) KeyValue {
 	return __ATTR_HTTP_USER_AGENT.String(v)
 }
 
+func BrokerIP(v string) KeyValue {
+	return __ATTR_BROKER_IP.String(v)
+}
+
+func ConsumerGroup(v string) KeyValue {
+	return __ATTR_CONSUMER_GROUP.String(v)
+}
+
+func MessageID(v string) KeyValue {
+	return __ATTR_MESSAGE_ID.String(v)
+}
+
+func Topic(v string) KeyValue {
+	return __ATTR_TOPIC.String(v)
+}
+
+func Stream(v string) KeyValue {
+	return __ATTR_STREAM.String(v)
+}
+
 func Stringer(name string, o interface{}) KeyValue {
 	return stringer(Key(name), o)
 }
