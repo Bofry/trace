@@ -62,6 +62,11 @@ const (
 	__ATTR_HTTP_RESPONSE     attribute.Key = "http.response"
 	__ATTR_HTTP_STATUS_CODE  attribute.Key = "http.status_code"
 	__ATTR_HTTP_USER_AGENT   attribute.Key = "http.user_agent"
+
+	__ATTR_BROKER_IP      attribute.Key = "broker_ip"
+	__ATTR_CONSUMER_GROUP attribute.Key = "consumer_group"
+	__ATTR_TOPIC          attribute.Key = "topic"
+	__ATTR_STREAM         attribute.Key = "stream"
 )
 
 const (
@@ -94,12 +99,16 @@ const (
 )
 
 const (
+	__CONTEXT_SEVERITY_SPAN_KEY ctxSpanKeyType = 0
+
 	// FlagsSampled is a bitmask with the sampled bit set. A SpanContext
 	// with the sampling bit set means the span is sampled.
 	FlagsSampled = trace.FlagsSampled
 )
 
 type (
+	ctxSpanKeyType int
+
 	KeyValue   = attribute.KeyValue
 	Key        = attribute.Key
 	SpanKind   = trace.SpanKind
@@ -118,12 +127,25 @@ type (
 		Extract(ctx context.Context) *SeveritySpan
 	}
 
+	SpanInjector interface {
+		Inject(ctx context.Context, span *SeveritySpan) context.Context
+	}
+
+	ValueCarrier interface {
+		SetValue(key, value interface{})
+		Value(key interface{}) interface{}
+	}
+
 	tracerProviderHolder struct {
 		v *SeverityTracerProvider
 	}
 
 	spanExtractorHolder struct {
 		v SpanExtractor
+	}
+
+	spanInjectorHolder struct {
+		v SpanInjector
 	}
 )
 
@@ -132,6 +154,7 @@ var (
 
 	globalTracerProvider = defaultTracerProviderValue()
 	globalSpanExtractor  = defaultSpanExtractor()
+	globalSpanInjector   = defaultSpanInjector()
 
 	noopSpan = trace.SpanFromContext(context.Background())
 )
@@ -186,6 +209,19 @@ func SetSpanExtractor(extractor SpanExtractor) {
 	}
 }
 
+func GetSpanInjector() SpanInjector {
+	return globalSpanInjector.Load().(spanInjectorHolder).v
+}
+
+func SetSpanInjector(injector SpanInjector) {
+	current := GetSpanInjector()
+	if current != injector {
+		globalSpanInjector.Store(spanInjectorHolder{
+			v: injector,
+		})
+	}
+}
+
 func Tracer(name string, opts ...trace.TracerOption) *SeverityTracer {
 	return GetTracerProvider().Tracer(name, opts...)
 }
@@ -214,9 +250,24 @@ func Vars() VarsBuilder {
 	return make(VarsBuilder)
 }
 
+func InjectSpan(ctx context.Context, span *SeveritySpan) context.Context {
+	if carrier, ok := ctx.(ValueCarrier); ok {
+		carrier.SetValue(__CONTEXT_SEVERITY_SPAN_KEY, span)
+		return ctx
+	}
+
+	var globalSpanInjector = GetSpanInjector()
+	return globalSpanInjector.Inject(ctx, span)
+}
+
+func ContextWithSpan(parent context.Context, span *SeveritySpan) context.Context {
+	return context.WithValue(parent, __CONTEXT_SEVERITY_SPAN_KEY, span)
+}
+
 func SpanFromContext(ctx context.Context, extractors ...SpanExtractor) *SeveritySpan {
 	var span *SeveritySpan
 
+	// extract span from specified extractors
 	for _, v := range extractors {
 		span = v.Extract(ctx)
 		if span != nil {
@@ -224,12 +275,24 @@ func SpanFromContext(ctx context.Context, extractors ...SpanExtractor) *Severity
 		}
 	}
 
+	// extract span form global
 	var globalSpanExtractor = GetSpanExtractor()
 	span = globalSpanExtractor.Extract(ctx)
 	if span != nil {
 		return span
 	}
 
+	// extract span from ctx
+	{
+		v := ctx.Value(__CONTEXT_SEVERITY_SPAN_KEY)
+		if v != nil {
+			if span, ok := v.(*SeveritySpan); ok {
+				return span
+			}
+		}
+	}
+
+	// extract span form otel trace.SpanFromContext()
 	return &SeveritySpan{
 		span: trace.SpanFromContext(ctx),
 		ctx:  ctx,
@@ -273,6 +336,14 @@ func defaultSpanExtractor() *atomic.Value {
 	v := &atomic.Value{}
 	v.Store(spanExtractorHolder{
 		v: NewCompositeSpanExtractor(),
+	})
+	return v
+}
+
+func defaultSpanInjector() *atomic.Value {
+	v := &atomic.Value{}
+	v.Store(spanInjectorHolder{
+		v: noopSpanInjectorInstance,
 	})
 	return v
 }
