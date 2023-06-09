@@ -132,9 +132,10 @@ type (
 		Inject(ctx context.Context, span *SeveritySpan) context.Context
 	}
 
-	ValueCarrier interface {
+	ValueContext interface {
+		context.Context
+
 		SetValue(key, value interface{})
-		Value(key interface{}) interface{}
 	}
 
 	tracerProviderHolder struct {
@@ -252,7 +253,7 @@ func Vars() VarsBuilder {
 }
 
 func SpanToContext(ctx context.Context, span *SeveritySpan) context.Context {
-	if carrier, ok := ctx.(ValueCarrier); ok {
+	if carrier, ok := ctx.(ValueContext); ok {
 		carrier.SetValue(__CONTEXT_SEVERITY_SPAN_KEY, span)
 		return ctx
 	}
