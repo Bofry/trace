@@ -250,7 +250,7 @@ func Vars() VarsBuilder {
 	return make(VarsBuilder)
 }
 
-func InjectSpan(ctx context.Context, span *SeveritySpan) context.Context {
+func SpanToContext(ctx context.Context, span *SeveritySpan) context.Context {
 	if carrier, ok := ctx.(ValueCarrier); ok {
 		carrier.SetValue(__CONTEXT_SEVERITY_SPAN_KEY, span)
 		return ctx
