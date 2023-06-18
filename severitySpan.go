@@ -115,10 +115,12 @@ func (s *SeveritySpan) Reply(code ReplyCode, v interface{}) {
 		return
 	}
 
-	kvset := expandObject(string(__ATTR_REPLY), v)
-	s.span.SetAttributes(
-		kvset...,
-	)
+	if v != nil {
+		kvset := expandObject(string(__ATTR_REPLY), v)
+		s.span.SetAttributes(
+			kvset...,
+		)
+	}
 
 	// output later
 	s.replyCode = code
