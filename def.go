@@ -13,9 +13,6 @@ import (
 )
 
 const (
-	__severity_none__ = -1
-
-	NONE   Severity = __severity_none__
 	DEBUG  Severity = iota // severity : 0
 	INFO                   // severity : 1
 	NOTICE                 // severity : 2
@@ -27,6 +24,9 @@ const (
 
 	__severity_minimum__ = DEBUG
 	__severity_maximum__ = EMERG
+	__severity_none__    = -1
+
+	NONE Severity = -1
 )
 
 const (
