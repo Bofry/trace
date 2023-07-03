@@ -104,6 +104,10 @@ func (s *SeveritySpan) Argv(v interface{}) {
 		return
 	}
 
+	if v == nil {
+		return
+	}
+
 	kvset := expandObject(string(__ATTR_ARGV), v)
 	s.span.SetAttributes(
 		kvset...,
