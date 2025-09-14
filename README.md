@@ -1,7 +1,7 @@
 # Trace - Severity-based Distributed Tracing Library
 
 [![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)](https://golang.org/dl/)
-[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-v1.16.0-orange.svg)](https://opentelemetry.io/)
+[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-v1.38.0-orange.svg)](https://opentelemetry.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bofry/trace)](https://goreportcard.com/report/github.com/Bofry/trace)
 [![Jaeger Compatible](https://img.shields.io/badge/Jaeger-Compatible-yellow.svg)](https://www.jaegertracing.io/)
@@ -42,8 +42,8 @@ import (
 )
 
 func main() {
-    // Create TracerProvider
-    tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+    // Create TracerProvider (OTLP - Recommended)
+    tp, err := trace.OTLPProvider("http://localhost:4318",
         trace.ServiceName("my-service"),
         trace.Environment("production"),
         trace.Pid(),
@@ -117,8 +117,8 @@ tp, err := trace.OTLPProvider("http://localhost:4318",
     trace.Environment("production"),
 )
 
-// Legacy Jaeger approach (backward compatible)
-tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+// Legacy Jaeger compatibility (auto-converts to OTLP)
+tp, err := trace.JaegerCompatibleProvider("http://localhost:14268/api/traces",
     trace.ServiceName("my-service"),
 )
 ```
@@ -231,36 +231,35 @@ go test -race ./...   # Race condition detection
 
 - **Test Coverage**: 90.7% (89/89 tests passing)
 - **Total Test Files**: 5 comprehensive test suites
-- **Benchmark Tests**: 19 performance benchmarks
+- **Benchmark Tests**: 20 performance benchmarks
 
 ### Performance Benchmarks
 
 #### Core Operations (ops/sec)
 
 ```textplain
-BenchmarkSeveritySpan_Debug         3,250,894    398.8 ns/op    912 B/op    8 allocs/op
-BenchmarkSeveritySpan_Info          3,084,661    410.0 ns/op    912 B/op    8 allocs/op
-BenchmarkSeveritySpan_Notice        2,995,432    415.3 ns/op    912 B/op    8 allocs/op
-BenchmarkSeveritySpan_Warning       3,104,412    406.7 ns/op    912 B/op    8 allocs/op
-BenchmarkSeveritySpan_Crit          3,089,513    408.5 ns/op    912 B/op    8 allocs/op
-BenchmarkSeveritySpan_Alert         3,101,745    407.2 ns/op    912 B/op    8 allocs/op
-BenchmarkSeveritySpan_Emerg         3,100,453    407.3 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Debug         42,077,848     28.44 ns/op     72 B/op    2 allocs/op
+BenchmarkSeveritySpan_Info          43,334,922     27.89 ns/op     72 B/op    2 allocs/op
+BenchmarkSeveritySpan_Warning       44,706,405     27.77 ns/op     72 B/op    2 allocs/op
+BenchmarkSeveritySpan_NoopSpan      41,718,452     27.13 ns/op     72 B/op    2 allocs/op
 ```
 
-#### No-op Span Optimization
+#### Additional Operations
 
 ```textplain
-BenchmarkNoopSpan_Debug            36,734,693     28.04 ns/op     0 B/op    0 allocs/op
-BenchmarkNoopSpan_Info             43,588,951     27.45 ns/op     0 B/op    0 allocs/op
-BenchmarkNoopSpan_Warning          43,745,951     27.41 ns/op     0 B/op    0 allocs/op
-BenchmarkNoopSpan_Err              43,705,951     27.43 ns/op     0 B/op    0 allocs/op
+BenchmarkExpandObject_String        72,578,631     16.97 ns/op     64 B/op    1 allocs/op
+BenchmarkExpandObject_Map            3,132,738     384.5 ns/op    640 B/op   15 allocs/op
+BenchmarkSpanFromContext           450,409,731      2.676 ns/op     0 B/op    0 allocs/op
+BenchmarkSpanEvent_Creation        100,000,000     10.62 ns/op      8 B/op    0 allocs/op
+BenchmarkNoopEvent_Operations      665,452,064      1.811 ns/op     0 B/op    0 allocs/op
 ```
 
 #### Memory Efficiency
 
-- **Recording Span**: ~400ns per operation, 912 bytes allocated
-- **No-op Span**: ~28ns per operation, zero allocations
-- **Optimization Ratio**: 14x performance improvement when tracing disabled
+- **Recording Span**: ~28ns per operation, 72 bytes allocated
+- **Context Operations**: ~3ns per operation, zero allocations
+- **Event Creation**: ~11ns per operation, minimal allocations
+- **No-op Operations**: ~2ns per operation, zero allocations
 
 ## API Reference
 
@@ -274,9 +273,9 @@ BenchmarkNoopSpan_Err              43,705,951     27.43 ns/op     0 B/op    0 al
 
 ### Provider Creation
 
-- `JaegerProvider(url, attrs...)`: Jaeger-compatible provider
-- `OTLPProvider(endpoint, attrs...)`: OTLP HTTP provider
+- `OTLPProvider(endpoint, attrs...)`: **RECOMMENDED** - OTLP HTTP provider
 - `OTLPGRPCProvider(endpoint, attrs...)`: OTLP gRPC provider
+- `JaegerCompatibleProvider(url, attrs...)`: Legacy Jaeger compatibility layer (auto-converts endpoints to OTLP)
 
 ### Span Methods
 
@@ -305,7 +304,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-**Note**: This library has completely migrated from the deprecated Jaeger
-exporter to modern OTLP protocol while maintaining full backward compatibility.
+**Note**: This library uses modern OTLP protocol as the primary transport.
+For Jaeger compatibility, use `JaegerCompatibleProvider` which automatically
+converts Jaeger endpoints to OTLP (port 14268→4318, 14250→4317).
 
 > **[完整中文文件請參閱 README_ZH.md](./README_ZH.md)**

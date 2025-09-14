@@ -24,9 +24,11 @@ func BenchmarkSeveritySpan_Debug(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Debug("Debug message %d", i)
 		event.Tags(Key("iteration").Int(i))
+		i++
 	}
 }
 
@@ -44,9 +46,11 @@ func BenchmarkSeveritySpan_Info(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Info("Info message %d", i)
 		event.Tags(Key("iteration").Int(i))
+		i++
 	}
 }
 
@@ -64,9 +68,11 @@ func BenchmarkSeveritySpan_Warning(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Warning("Warning message %d", i)
 		event.Tags(Key("iteration").Int(i))
+		i++
 	}
 }
 
@@ -77,9 +83,11 @@ func BenchmarkSeveritySpan_NoopSpan(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Debug("Debug message %d", i)
 		event.Tags(Key("iteration").Int(i))
+		i++
 	}
 }
 
@@ -89,7 +97,7 @@ func BenchmarkExpandObject_String(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		result := expandObject("test", testString)
 		_ = result
 	}
@@ -106,7 +114,7 @@ func BenchmarkExpandObject_Map(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		result := expandObject("test", testMap)
 		_ = result
 	}
@@ -122,7 +130,7 @@ func BenchmarkExpandObject_LargeMap(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		result := expandObject("test", testMap)
 		_ = result
 	}
@@ -134,7 +142,7 @@ func BenchmarkExpandObject_Slice(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		result := expandObject("test", testSlice)
 		_ = result
 	}
@@ -144,7 +152,7 @@ func BenchmarkTracerTagBuilder(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		builder := &TracerTagBuilder{
 			namespace: "benchmark",
 			container: make([]KeyValue, 0, 8),
@@ -164,7 +172,7 @@ func BenchmarkTracerTagBuilder_Large(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		builder := &TracerTagBuilder{
 			namespace: "benchmark",
 			container: make([]KeyValue, 0, 32),
@@ -197,7 +205,7 @@ func BenchmarkSpanFromContext(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		span := SpanFromContext(ctx)
 		_ = span
 	}
@@ -220,7 +228,7 @@ func BenchmarkSpanFromContext_WithExtractor(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		span := SpanFromContext(ctx, extractor)
 		_ = span
 	}
@@ -230,7 +238,7 @@ func BenchmarkGlobalState_GetTracerProvider(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		provider := GetTracerProvider()
 		_ = provider
 	}
@@ -240,7 +248,7 @@ func BenchmarkGlobalState_GetSpanExtractor(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		extractor := GetSpanExtractor()
 		_ = extractor
 	}
@@ -260,9 +268,11 @@ func BenchmarkSpanEvent_Creation(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Debug("Benchmark message %d", i)
 		_ = event
+		i++
 	}
 }
 
@@ -286,9 +296,11 @@ func BenchmarkSpanEvent_WithTags(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Debug("Benchmark message %d", i)
 		event.Tags(tags...)
+		i++
 	}
 }
 
@@ -313,9 +325,11 @@ func BenchmarkSpanEvent_WithVars(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Debug("Benchmark message %d", i)
 		event.Vars(vars)
+		i++
 	}
 }
 
@@ -333,11 +347,13 @@ func BenchmarkSpanEvent_FullWorkflow(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	i := 0
+	for b.Loop() {
 		event := span.Debug("Benchmark message %d", i)
 		event.Tags(Key("iteration").Int(i))
 		event.Vars(map[string]any{"data": i})
 		event.Flush()
+		i++
 	}
 }
 
@@ -350,7 +366,7 @@ func BenchmarkNoopEvent_Operations(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		nop.Tags(tags...)
 		nop.Vars(vars)
 		nop.Flush()
