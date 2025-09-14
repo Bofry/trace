@@ -135,7 +135,7 @@ type (
 	ValueContext interface {
 		context.Context
 
-		SetValue(key, value interface{})
+		SetValue(key, value any)
 	}
 
 	tracerProviderHolder struct {

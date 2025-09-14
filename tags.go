@@ -90,15 +90,15 @@ func Stream(v string) KeyValue {
 	return __ATTR_STREAM.String(v)
 }
 
-func Stringer(name string, o interface{}) KeyValue {
+func Stringer(name string, o any) KeyValue {
 	return stringer(Key(name), o)
 }
 
-func Infer(name string, s interface{}) KeyValue {
+func Infer(name string, s any) KeyValue {
 	return infer(Key(name), s)
 }
 
-func expandObject(namespace string, o interface{}) []KeyValue {
+func expandObject(namespace string, o any) []KeyValue {
 	// value is struct, bool, string, int, int64, float64?
 	switch v := o.(type) {
 	case TracerTagMarshaler:
@@ -158,7 +158,7 @@ func expandObject(namespace string, o interface{}) []KeyValue {
 	return nil
 }
 
-func stringer(key Key, o interface{}) KeyValue {
+func stringer(key Key, o any) KeyValue {
 	switch v := o.(type) {
 	case fmt.Stringer:
 		return key.String(v.String())
@@ -166,7 +166,7 @@ func stringer(key Key, o interface{}) KeyValue {
 	return key.String(fmt.Sprintf("%+v", o))
 }
 
-func infer(key Key, s interface{}) KeyValue {
+func infer(key Key, s any) KeyValue {
 	switch v := s.(type) {
 	case string:
 		return key.String(v)

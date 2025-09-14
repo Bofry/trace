@@ -3,12 +3,12 @@ package trace
 import "fmt"
 
 var (
-	_ TracerTagMarshaler = VarsBuilder(make(map[string]interface{}))
+	_ TracerTagMarshaler = VarsBuilder(make(map[string]any))
 )
 
-type VarsBuilder map[string]interface{}
+type VarsBuilder map[string]any
 
-func (b VarsBuilder) Put(key string, value interface{}) VarsBuilder {
+func (b VarsBuilder) Put(key string, value any) VarsBuilder {
 	if _, ok := b[key]; ok {
 		panic(
 			fmt.Sprintf("Cannot add duplicate key '%s' into %T", key, b))
@@ -17,7 +17,7 @@ func (b VarsBuilder) Put(key string, value interface{}) VarsBuilder {
 	return b
 }
 
-func (b VarsBuilder) Set(key string, value interface{}) VarsBuilder {
+func (b VarsBuilder) Set(key string, value any) VarsBuilder {
 	b[key] = value
 	return b
 }

@@ -60,7 +60,7 @@ var (
 		 *   "errors" : ...
 		 * }
 		 */
-		var record map[string]interface{}
+		var record map[string]any
 		err = json.Unmarshal(body, &record)
 		if err != nil {
 			t.Fatal(err)
@@ -71,7 +71,7 @@ var (
 			if !ok {
 				t.Errorf("???")
 			}
-			record_data, ok := v.([]interface{})
+			record_data, ok := v.([]any)
 			if !ok {
 				t.Errorf("???")
 			}
@@ -80,7 +80,7 @@ var (
 				t.Errorf("data size expect %v, got %v", exceptedRecordDataLength, len(record_data))
 			}
 			{
-				record_data_0, ok := record_data[0].(map[string]interface{})
+				record_data_0, ok := record_data[0].(map[string]any)
 				if !ok {
 					t.Errorf("???")
 				}
@@ -92,7 +92,7 @@ var (
 				if expectedRecordData_0_TraceID != record_data_0_traceID {
 					t.Errorf("data[0].traceID expect %v, got %v", expectedRecordData_0_TraceID, record_data_0_traceID)
 				}
-				record_data_0_spans, ok := record_data_0["spans"].([]interface{})
+				record_data_0_spans, ok := record_data_0["spans"].([]any)
 				if !ok {
 					t.Errorf("???")
 				}

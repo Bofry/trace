@@ -99,7 +99,7 @@ func (s *SeveritySpan) Tags(tags ...KeyValue) {
 	s.span.SetAttributes(tags...)
 }
 
-func (s *SeveritySpan) Argv(v interface{}) {
+func (s *SeveritySpan) Argv(v any) {
 	if !s.span.IsRecording() {
 		return
 	}
@@ -114,7 +114,7 @@ func (s *SeveritySpan) Argv(v interface{}) {
 	)
 }
 
-func (s *SeveritySpan) Reply(code ReplyCode, v interface{}) {
+func (s *SeveritySpan) Reply(code ReplyCode, v any) {
 	if !s.span.IsRecording() {
 		return
 	}
@@ -143,7 +143,7 @@ func (s *SeveritySpan) Err(err error) {
 	s.err = err
 }
 
-func (s *SeveritySpan) Debug(message string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Debug(message string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}
@@ -158,7 +158,7 @@ func (s *SeveritySpan) Debug(message string, v ...interface{}) SpanEvent {
 	return event
 }
 
-func (s *SeveritySpan) Info(message string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Info(message string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}
@@ -173,7 +173,7 @@ func (s *SeveritySpan) Info(message string, v ...interface{}) SpanEvent {
 	return event
 }
 
-func (s *SeveritySpan) Notice(message string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Notice(message string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}
@@ -188,7 +188,7 @@ func (s *SeveritySpan) Notice(message string, v ...interface{}) SpanEvent {
 	return event
 }
 
-func (s *SeveritySpan) Warning(reason string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Warning(reason string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}
@@ -203,7 +203,7 @@ func (s *SeveritySpan) Warning(reason string, v ...interface{}) SpanEvent {
 	return event
 }
 
-func (s *SeveritySpan) Crit(reason string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Crit(reason string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}
@@ -218,7 +218,7 @@ func (s *SeveritySpan) Crit(reason string, v ...interface{}) SpanEvent {
 	return event
 }
 
-func (s *SeveritySpan) Alert(reason string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Alert(reason string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}
@@ -233,7 +233,7 @@ func (s *SeveritySpan) Alert(reason string, v ...interface{}) SpanEvent {
 	return event
 }
 
-func (s *SeveritySpan) Emerg(reason string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Emerg(reason string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
 	}

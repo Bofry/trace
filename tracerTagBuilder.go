@@ -5,7 +5,7 @@ type TracerTagBuilder struct {
 	container []KeyValue
 }
 
-func (builder *TracerTagBuilder) Value(name string, v interface{}) {
+func (builder *TracerTagBuilder) Value(name string, v any) {
 	if len(name) > 0 {
 		k := builder.namespaceKey(name)
 		kv := expandObject(string(k), v)
