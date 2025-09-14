@@ -135,7 +135,7 @@ type (
 	ValueContext interface {
 		context.Context
 
-		SetValue(key, value interface{})
+		SetValue(key, value any)
 	}
 
 	tracerProviderHolder struct {
@@ -203,12 +203,9 @@ func GetSpanExtractor() SpanExtractor {
 }
 
 func SetSpanExtractor(extractor SpanExtractor) {
-	current := GetSpanExtractor()
-	if current != extractor {
-		globalSpanExtractor.Store(spanExtractorHolder{
-			v: extractor,
-		})
-	}
+	globalSpanExtractor.Store(spanExtractorHolder{
+		v: extractor,
+	})
 }
 
 func GetSpanInjector() SpanInjector {
@@ -216,25 +213,15 @@ func GetSpanInjector() SpanInjector {
 }
 
 func SetSpanInjector(injector SpanInjector) {
-	current := GetSpanInjector()
-	if current != injector {
-		globalSpanInjector.Store(spanInjectorHolder{
-			v: injector,
-		})
-	}
+	globalSpanInjector.Store(spanInjectorHolder{
+		v: injector,
+	})
 }
 
 func Tracer(name string, opts ...trace.TracerOption) *SeverityTracer {
 	return GetTracerProvider().Tracer(name, opts...)
 }
 
-func OtelSpanFromSeveritySpan(span *SeveritySpan) trace.Span {
-	return span.otelSpan()
-}
-
-func OtelTracerFromTracer(tr *SeverityTracer) trace.Tracer {
-	return tr.otelTracer()
-}
 
 func IsOtelNoopSpan(span trace.Span) bool {
 	return span == noopSpan
@@ -244,13 +231,6 @@ func IsNoopSeveritySpan(span *SeveritySpan) bool {
 	return IsOtelNoopSpan(span.otelSpan())
 }
 
-func Argv() VarsBuilder {
-	return make(VarsBuilder)
-}
-
-func Vars() VarsBuilder {
-	return make(VarsBuilder)
-}
 
 func SpanToContext(ctx context.Context, span *SeveritySpan) context.Context {
 	if carrier, ok := ctx.(ValueContext); ok {
@@ -296,8 +276,9 @@ func SpanFromContext(ctx context.Context, extractors ...SpanExtractor) *Severity
 
 	// extract span form otel trace.SpanFromContext()
 	return &SeveritySpan{
-		span: trace.SpanFromContext(ctx),
-		ctx:  ctx,
+		span:   trace.SpanFromContext(ctx),
+		ctx:    ctx,
+		events: make([]SpanEvent, 0, 4),
 	}
 }
 
@@ -319,8 +300,9 @@ func CreateSeveritySpan(ctx context.Context) *SeveritySpan {
 	}
 	span := trace.SpanFromContext(ctx)
 	return &SeveritySpan{
-		span: span,
-		ctx:  ctx,
+		span:   span,
+		ctx:    ctx,
+		events: make([]SpanEvent, 0, 4),
 	}
 }
 

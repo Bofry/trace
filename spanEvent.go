@@ -11,7 +11,7 @@ type SpanEvent interface {
 	Flush()
 	Error(err error)
 	Tags(tags ...KeyValue)
-	Vars(v interface{})
+	Vars(v any)
 }
 
 var (
@@ -46,7 +46,7 @@ func (NopEvent) Tags(tags ...KeyValue) {
 }
 
 // Vars implements SpanEvent
-func (NopEvent) Vars(v interface{}) {
+func (NopEvent) Vars(v any) {
 	// do nothing
 }
 
@@ -105,7 +105,7 @@ func (s *SeverityEvent) Tags(tags ...KeyValue) {
 }
 
 // Vars implements SpanEvent
-func (s *SeverityEvent) Vars(v interface{}) {
+func (s *SeverityEvent) Vars(v any) {
 	if !s.flushed {
 		tags := expandObject(string(__ATTR_VARS), v)
 		s.tags = append(s.tags, tags...)

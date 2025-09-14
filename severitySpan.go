@@ -99,7 +99,7 @@ func (s *SeveritySpan) Tags(tags ...KeyValue) {
 	s.span.SetAttributes(tags...)
 }
 
-func (s *SeveritySpan) Argv(v interface{}) {
+func (s *SeveritySpan) Argv(v any) {
 	if !s.span.IsRecording() {
 		return
 	}
@@ -114,7 +114,7 @@ func (s *SeveritySpan) Argv(v interface{}) {
 	)
 }
 
-func (s *SeveritySpan) Reply(code ReplyCode, v interface{}) {
+func (s *SeveritySpan) Reply(code ReplyCode, v any) {
 	if !s.span.IsRecording() {
 		return
 	}
@@ -143,106 +143,52 @@ func (s *SeveritySpan) Err(err error) {
 	s.err = err
 }
 
-func (s *SeveritySpan) Debug(message string, v ...interface{}) SpanEvent {
-	if !s.span.IsRecording() {
-		return nopEventInstance
-	}
-
-	event := &SeverityEvent{
-		timestamp: time.Now(),
-		span:      s.span,
-		severity:  DEBUG,
-		message:   fmt.Sprintf(message, v...),
-	}
-	s.events = append(s.events, event)
-	return event
+func (s *SeveritySpan) Debug(message string, v ...any) SpanEvent {
+	return s.createEvent(DEBUG, message, v...)
 }
 
-func (s *SeveritySpan) Info(message string, v ...interface{}) SpanEvent {
-	if !s.span.IsRecording() {
-		return nopEventInstance
-	}
-
-	event := &SeverityEvent{
-		timestamp: time.Now(),
-		span:      s.span,
-		severity:  INFO,
-		message:   fmt.Sprintf(message, v...),
-	}
-	s.events = append(s.events, event)
-	return event
+func (s *SeveritySpan) Info(message string, v ...any) SpanEvent {
+	return s.createEvent(INFO, message, v...)
 }
 
-func (s *SeveritySpan) Notice(message string, v ...interface{}) SpanEvent {
-	if !s.span.IsRecording() {
-		return nopEventInstance
-	}
-
-	event := &SeverityEvent{
-		timestamp: time.Now(),
-		span:      s.span,
-		severity:  NOTICE,
-		message:   fmt.Sprintf(message, v...),
-	}
-	s.events = append(s.events, event)
-	return event
+func (s *SeveritySpan) Notice(message string, v ...any) SpanEvent {
+	return s.createEvent(NOTICE, message, v...)
 }
 
-func (s *SeveritySpan) Warning(reason string, v ...interface{}) SpanEvent {
-	if !s.span.IsRecording() {
-		return nopEventInstance
-	}
-
-	event := &SeverityEvent{
-		timestamp: time.Now(),
-		span:      s.span,
-		severity:  WARN,
-		message:   fmt.Sprintf(reason, v...),
-	}
-	s.events = append(s.events, event)
-	return event
+func (s *SeveritySpan) Warning(reason string, v ...any) SpanEvent {
+	return s.createEvent(WARN, reason, v...)
 }
 
-func (s *SeveritySpan) Crit(reason string, v ...interface{}) SpanEvent {
-	if !s.span.IsRecording() {
-		return nopEventInstance
-	}
-
-	event := &SeverityEvent{
-		timestamp: time.Now(),
-		span:      s.span,
-		severity:  CRIT,
-		message:   fmt.Sprintf(reason, v...),
-	}
-	s.events = append(s.events, event)
-	return event
+func (s *SeveritySpan) Crit(reason string, v ...any) SpanEvent {
+	return s.createEvent(CRIT, reason, v...)
 }
 
-func (s *SeveritySpan) Alert(reason string, v ...interface{}) SpanEvent {
-	if !s.span.IsRecording() {
-		return nopEventInstance
-	}
-
-	event := &SeverityEvent{
-		timestamp: time.Now(),
-		span:      s.span,
-		severity:  ALERT,
-		message:   fmt.Sprintf(reason, v...),
-	}
-	s.events = append(s.events, event)
-	return event
+func (s *SeveritySpan) Alert(reason string, v ...any) SpanEvent {
+	return s.createEvent(ALERT, reason, v...)
 }
 
-func (s *SeveritySpan) Emerg(reason string, v ...interface{}) SpanEvent {
+func (s *SeveritySpan) Emerg(reason string, v ...any) SpanEvent {
+	return s.createEvent(EMERG, reason, v...)
+}
+
+func (s *SeveritySpan) createEvent(severity Severity, message string, v ...any) SpanEvent {
 	if !s.span.IsRecording() {
 		return nopEventInstance
+	}
+
+	var formattedMessage string
+	if len(v) == 0 {
+		formattedMessage = message
+	} else {
+		formattedMessage = fmt.Sprintf(message, v...)
 	}
 
 	event := &SeverityEvent{
 		timestamp: time.Now(),
 		span:      s.span,
-		severity:  EMERG,
-		message:   fmt.Sprintf(reason, v...),
+		severity:  severity,
+		message:   formattedMessage,
+		tags:      make([]KeyValue, 0, 4),
 	}
 	s.events = append(s.events, event)
 	return event

@@ -27,32 +27,6 @@ var (
 // Severity
 type Severity int8
 
-func (s Severity) Value() int {
-	if s.IsValid() {
-		return int(s)
-	}
-	return __severity_none__
-}
-
-func (s Severity) IsValid() bool {
-	if (s > __severity_maximum__) || (s < __severity_minimum__) {
-		return false
-	}
-	return true
-}
-
 func (s Severity) Name() string {
 	return severityNames[s]
-}
-
-func (s Severity) String() string {
-	return s.Name()
-}
-
-func ParseSeverity(name string) Severity {
-	v, ok := severityNameMappingTable[name]
-	if ok {
-		return v
-	}
-	return __severity_none__
 }

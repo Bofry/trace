@@ -1,11 +1,14 @@
 package trace
 
+import "strings"
+
 type TracerTagBuilder struct {
 	namespace string
 	container []KeyValue
+	keyBuffer strings.Builder // Reuse builder for better performance
 }
 
-func (builder *TracerTagBuilder) Value(name string, v interface{}) {
+func (builder *TracerTagBuilder) Value(name string, v any) {
 	if len(name) > 0 {
 		k := builder.namespaceKey(name)
 		kv := expandObject(string(k), v)
@@ -90,5 +93,10 @@ func (builder *TracerTagBuilder) Result() []KeyValue {
 }
 
 func (builder *TracerTagBuilder) namespaceKey(name string) Key {
-	return Key(builder.namespace + "." + name)
+	builder.keyBuffer.Reset()
+	builder.keyBuffer.Grow(len(builder.namespace) + 1 + len(name))
+	builder.keyBuffer.WriteString(builder.namespace)
+	builder.keyBuffer.WriteByte('.')
+	builder.keyBuffer.WriteString(name)
+	return Key(builder.keyBuffer.String())
 }
