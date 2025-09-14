@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"runtime"
+	"strings"
 )
 
 var (
@@ -20,12 +20,6 @@ func Environment(v string) KeyValue {
 	return __ATTR_ENVIRONMENT.String(v)
 }
 
-func OS() KeyValue {
-	if len(__attrval_os) == 0 {
-		__attrval_os = runtime.GOOS + "-" + runtime.GOARCH
-	}
-	return __ATTR_OS.String(__attrval_os)
-}
 
 func Pid() KeyValue {
 	if __attrval_pid == 0 {
@@ -34,81 +28,43 @@ func Pid() KeyValue {
 	return __ATTR_PID.Int(__attrval_pid)
 }
 
-func Facility(v string) KeyValue {
-	return __ATTR_FACILITY.String(v)
-}
-
-func Signature(v string) KeyValue {
-	return __ATTR_SIGNATURE.String(v)
-}
-
-func Version(v string) KeyValue {
-	return __ATTR_VERSION.String(v)
-}
-
-func HttpMethod(v string) KeyValue {
-	return __ATTR_HTTP_METHOD.String(v)
-}
-
-func HttpRequest(v string) KeyValue {
-	return __ATTR_HTTP_REQUEST.String(v)
-}
-
-func HttpRequestPath(v string) KeyValue {
-	return __ATTR_HTTP_REQUEST_PATH.String(v)
-}
-
-func HttpResponse(v string) KeyValue {
-	return __ATTR_HTTP_RESPONSE.String(v)
-}
-
-func HttpStatusCode(v int) KeyValue {
-	return __ATTR_HTTP_STATUS_CODE.Int(v)
-}
-
-func HttpUserAgent(v string) KeyValue {
-	return __ATTR_HTTP_USER_AGENT.String(v)
-}
-
-func BrokerIP(v string) KeyValue {
-	return __ATTR_BROKER_IP.String(v)
-}
-
-func ConsumerGroup(v string) KeyValue {
-	return __ATTR_CONSUMER_GROUP.String(v)
-}
-
-func MessageID(v string) KeyValue {
-	return __ATTR_MESSAGE_ID.String(v)
-}
-
-func Topic(v string) KeyValue {
-	return __ATTR_TOPIC.String(v)
-}
-
-func Stream(v string) KeyValue {
-	return __ATTR_STREAM.String(v)
-}
-
-func Stringer(name string, o any) KeyValue {
-	return stringer(Key(name), o)
-}
-
-func Infer(name string, s any) KeyValue {
-	return infer(Key(name), s)
-}
 
 func expandObject(namespace string, o any) []KeyValue {
-	// value is struct, bool, string, int, int64, float64?
+	// Fast path for common types to avoid reflection
 	switch v := o.(type) {
+	case string:
+		return []KeyValue{Key(namespace).String(v)}
+	case int:
+		return []KeyValue{Key(namespace).Int(v)}
+	case int64:
+		return []KeyValue{Key(namespace).Int64(v)}
+	case float64:
+		return []KeyValue{Key(namespace).Float64(v)}
+	case bool:
+		return []KeyValue{Key(namespace).Bool(v)}
+	case []string:
+		return []KeyValue{Key(namespace).StringSlice(v)}
+	case []int:
+		return []KeyValue{Key(namespace).IntSlice(v)}
+	case []int64:
+		return []KeyValue{Key(namespace).Int64Slice(v)}
+	case []float64:
+		return []KeyValue{Key(namespace).Float64Slice(v)}
+	case []bool:
+		return []KeyValue{Key(namespace).BoolSlice(v)}
 	case TracerTagMarshaler:
 		builder := &TracerTagBuilder{
 			namespace: namespace,
+			container: make([]KeyValue, 0, 8),
 		}
 		err := v.MarshalTracerTag(builder)
 		if err != nil {
+			var sb strings.Builder
+			sb.Grow(len(namespace) + 6) // "_error" = 6 chars
+			sb.WriteString(namespace)
+			sb.WriteString("_error")
 			return []KeyValue{
-				Key(fmt.Sprintf("%s_error", namespace)).String(err.Error()),
+				Key(sb.String()).String(err.Error()),
 			}
 		}
 		return builder.Result()
@@ -132,7 +88,12 @@ func expandObject(namespace string, o any) []KeyValue {
 			for iter.Next() {
 				k := iter.Key().String()
 				v := iter.Value().Interface()
-				attrkey := Key(namespace + "." + k)
+				var sb strings.Builder
+				sb.Grow(len(namespace) + 1 + len(k))
+				sb.WriteString(namespace)
+				sb.WriteByte('.')
+				sb.WriteString(k)
+				attrkey := Key(sb.String())
 
 				kv := infer(attrkey, v)
 				if kv.Valid() {

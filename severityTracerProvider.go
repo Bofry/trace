@@ -177,9 +177,3 @@ func JaegerProvider(jaegerURL string, attrs ...KeyValue) (*SeverityTracerProvide
 	return stp, nil
 }
 
-// NoopProvider creates a no-op tracer provider for testing
-func NoopProvider() (*SeverityTracerProvider, error) {
-	tp := trace.NewNoopTracerProvider()
-	stp := CreateSeverityTracerProvider(tp)
-	return stp, nil
-}

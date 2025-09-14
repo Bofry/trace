@@ -31,8 +31,9 @@ func (s *SeverityTracer) Start(
 	}
 	ctx, span := s.tr.Start(ctx, spanName, opts...)
 	return &SeveritySpan{
-		span: span,
-		ctx:  ctx,
+		span:   span,
+		ctx:    ctx,
+		events: make([]SpanEvent, 0, 4),
 	}
 }
 

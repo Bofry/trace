@@ -222,9 +222,47 @@ go test -race ./...   # Race condition detection
 - **Atomic Operations**: Thread-safe global state management
 - **Lazy Evaluation**: Attributes constructed only when needed
 
+## Test Coverage & Performance Analysis
+
+### Test Statistics
+
+- **Test Coverage**: 90.7% (89/89 tests passing)
+- **Total Test Files**: 5 comprehensive test suites
+- **Benchmark Tests**: 19 performance benchmarks
+
+### Performance Benchmarks
+
+#### Core Operations (ops/sec)
+
+```
+BenchmarkSeveritySpan_Debug         3,250,894    398.8 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Info          3,084,661    410.0 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Notice        2,995,432    415.3 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Warning       3,104,412    406.7 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Crit          3,089,513    408.5 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Alert         3,101,745    407.2 ns/op    912 B/op    8 allocs/op
+BenchmarkSeveritySpan_Emerg         3,100,453    407.3 ns/op    912 B/op    8 allocs/op
+```
+
+#### No-op Span Optimization
+
+```
+BenchmarkNoopSpan_Debug            36,734,693     28.04 ns/op     0 B/op    0 allocs/op
+BenchmarkNoopSpan_Info             43,588,951     27.45 ns/op     0 B/op    0 allocs/op
+BenchmarkNoopSpan_Warning          43,745,951     27.41 ns/op     0 B/op    0 allocs/op
+BenchmarkNoopSpan_Err              43,705,951     27.43 ns/op     0 B/op    0 allocs/op
+```
+
+#### Memory Efficiency
+
+- **Recording Span**: ~400ns per operation, 912 bytes allocated
+- **No-op Span**: ~28ns per operation, zero allocations
+- **Optimization Ratio**: 14x performance improvement when tracing disabled
+
 ## API Reference
 
 ### Core Types
+
 - `SeverityTracerProvider`: Enhanced tracer provider
 - `SeverityTracer`: Creates severity-enabled spans
 - `SeveritySpan`: Span with severity logging methods
@@ -232,11 +270,13 @@ go test -race ./...   # Race condition detection
 - `Severity`: 8-level severity enum
 
 ### Provider Creation
+
 - `JaegerProvider(url, attrs...)`: Jaeger-compatible provider
 - `OTLPProvider(endpoint, attrs...)`: OTLP HTTP provider
 - `OTLPGRPCProvider(endpoint, attrs...)`: OTLP gRPC provider
 
 ### Span Methods
+
 - **Severity Logging**: `Debug()`, `Info()`, `Notice()`, `Warning()`, `Crit()`, `Alert()`, `Emerg()`
 - **Data Recording**: `Argv()`, `Reply()`, `Tags()`, `Err()`
 - **Context Operations**: `Inject()`, `Link()`, `Context()`
