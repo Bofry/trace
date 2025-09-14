@@ -6,7 +6,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bofry/trace)](https://goreportcard.com/report/github.com/Bofry/trace)
 [![Documentation](https://img.shields.io/badge/docs-README-blue.svg)](README_ZH.md)
 
-**github.com/Bofry/trace** 是一個建構於 OpenTelemetry 之上的結構化、基於嚴重性的分散式追蹤庫。它使用嚴重性等級（DEBUG 到 EMERG）增強標準的 OpenTelemetry spans，並提供流暢的 API 用於結構化記錄和跨服務追蹤傳播，與 Jaeger 無縫整合。
+**github.com/Bofry/trace** 是一個建構於 OpenTelemetry
+之上的結構化、基於嚴重性的分散式追蹤庫。它使用嚴重性等級（DEBUG 到 EMERG）
+增強標準的 OpenTelemetry spans，並提供流暢的 API
+用於結構化記錄和跨服務追蹤傳播，與 Jaeger 無縫整合。
 
 ## 核心特性
 
@@ -364,7 +367,7 @@ go test -bench=. -benchmem
 
 目前測試套件提供優秀的覆蓋率：
 
-```
+```textplain
 ✅ 測試覆蓋率: 90.7%
 ✅ 通過測試: 89/89 個測試
 ✅ 基準測試: 19 個效能測試
@@ -385,11 +388,11 @@ go test -bench=. -benchmem
 
 最新的基準測試結果顯示優異的效能表現：
 
-```
-BenchmarkSeveritySpan_Debug      3,015,145 ops/sec    413.6 ns/op    905 B/op     9 allocs/op
-BenchmarkSeveritySpan_Info       3,241,004 ops/sec    411.5 ns/op    899 B/op     9 allocs/op
-BenchmarkSeveritySpan_Warning    3,117,613 ops/sec    428.5 ns/op    902 B/op     9 allocs/op
-BenchmarkSeveritySpan_NoopSpan  41,277,481 ops/sec     27.6 ns/op     72 B/op     1 allocs/op
+```textplain
+BenchmarkSeveritySpan_Debug      3,015,145 ops/sec    413.6 ns/op    905 B/op
+BenchmarkSeveritySpan_Info       3,241,004 ops/sec    411.5 ns/op    899 B/op
+BenchmarkSeveritySpan_Warning    3,117,613 ops/sec    428.5 ns/op    902 B/op
+BenchmarkSeveritySpan_NoopSpan  41,277,481 ops/sec     27.6 ns/op     72 B/op
 ```
 
 **關鍵指標：**

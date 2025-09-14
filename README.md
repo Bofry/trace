@@ -10,7 +10,10 @@
 > **[中文版文件 (Chinese Documentation)](./README_ZH.md)**
 > **推薦閱讀中文版，包含更詳細的使用說明和最佳實踐範例**
 
-**github.com/Bofry/trace** is a structured, severity-based distributed tracing library built on OpenTelemetry. It enhances standard OpenTelemetry spans with severity levels (DEBUG through EMERG) and provides fluent APIs for structured logging and cross-service trace propagation with Jaeger integration.
+**github.com/Bofry/trace** is a structured, severity-based distributed
+tracing library built on OpenTelemetry. It enhances standard OpenTelemetry spans
+with severity levels (DEBUG through EMERG) and provides fluent APIs for
+structured logging and cross-service trace propagation with Jaeger integration.
 
 ## Key Features
 
@@ -234,7 +237,7 @@ go test -race ./...   # Race condition detection
 
 #### Core Operations (ops/sec)
 
-```
+```textplain
 BenchmarkSeveritySpan_Debug         3,250,894    398.8 ns/op    912 B/op    8 allocs/op
 BenchmarkSeveritySpan_Info          3,084,661    410.0 ns/op    912 B/op    8 allocs/op
 BenchmarkSeveritySpan_Notice        2,995,432    415.3 ns/op    912 B/op    8 allocs/op
@@ -246,7 +249,7 @@ BenchmarkSeveritySpan_Emerg         3,100,453    407.3 ns/op    912 B/op    8 al
 
 #### No-op Span Optimization
 
-```
+```textplain
 BenchmarkNoopSpan_Debug            36,734,693     28.04 ns/op     0 B/op    0 allocs/op
 BenchmarkNoopSpan_Info             43,588,951     27.45 ns/op     0 B/op    0 allocs/op
 BenchmarkNoopSpan_Warning          43,745,951     27.41 ns/op     0 B/op    0 allocs/op
@@ -277,7 +280,8 @@ BenchmarkNoopSpan_Err              43,705,951     27.43 ns/op     0 B/op    0 al
 
 ### Span Methods
 
-- **Severity Logging**: `Debug()`, `Info()`, `Notice()`, `Warning()`, `Crit()`, `Alert()`, `Emerg()`
+- **Severity Logging**: `Debug()`, `Info()`, `Notice()`, `Warning()`,
+  `Crit()`, `Alert()`, `Emerg()`
 - **Data Recording**: `Argv()`, `Reply()`, `Tags()`, `Err()`
 - **Context Operations**: `Inject()`, `Link()`, `Context()`
 
@@ -301,6 +305,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-**Note**: This library has completely migrated from the deprecated Jaeger exporter to modern OTLP protocol while maintaining full backward compatibility.
+**Note**: This library has completely migrated from the deprecated Jaeger
+exporter to modern OTLP protocol while maintaining full backward compatibility.
 
 > **[完整中文文件請參閱 README_ZH.md](./README_ZH.md)**
