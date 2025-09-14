@@ -53,72 +53,7 @@ func TestOTLPGRPCProviderCreation(t *testing.T) {
 	tp.Shutdown(context.Background())
 }
 
-func TestJaegerProviderBackwardCompatibility(t *testing.T) {
-	// Test that JaegerProvider still works and creates OTLP provider
-	tp, err := JaegerProvider("http://localhost:14268/api/traces",
-		ServiceName("jaeger-compat-test"),
-		Environment("go-test"),
-	)
-	if err != nil {
-		t.Fatalf("Failed to create Jaeger-compatible provider: %v", err)
-	}
 
-	if tp == nil {
-		t.Fatal("Jaeger-compatible provider should not be nil")
-	}
-
-	// Test basic functionality
-	tracer := tp.Tracer("test-tracer")
-	if tracer == nil {
-		t.Fatal("Tracer should not be nil")
-	}
-
-	// Cleanup
-	tp.Shutdown(context.Background())
-}
-
-func TestConvertJaegerToOTLP(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected string
-	}{
-		{
-			name:     "Jaeger HTTP collector",
-			input:    "http://localhost:14268/api/traces",
-			expected: "http://localhost:4318",
-		},
-		{
-			name:     "Jaeger gRPC collector",
-			input:    "http://localhost:14250",
-			expected: "http://localhost:4317",
-		},
-		{
-			name:     "Remote Jaeger HTTP",
-			input:    "http://jaeger.example.com:14268/api/traces",
-			expected: "http://jaeger.example.com:4318",
-		},
-		{
-			name:     "HTTPS Jaeger",
-			input:    "https://secure.jaeger.com:14268/api/traces",
-			expected: "https://secure.jaeger.com:4318",
-		},
-		{
-			name:     "No port specified",
-			input:    "http://localhost",
-			expected: "http://localhost:4318",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			result := convertJaegerToOTLP(tc.input)
-			if result != tc.expected {
-				t.Errorf("Expected %s, got %s", tc.expected, result)
-			}
-		})
-	}
-}
 
 func TestProviderCreationWithInvalidEndpoint(t *testing.T) {
 	// Test with invalid endpoint
@@ -128,4 +63,45 @@ func TestProviderCreationWithInvalidEndpoint(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error with invalid endpoint, got nil")
 	}
+}
+
+func TestJaegerCompatibleProvider(t *testing.T) {
+	// Test modern OTLP endpoint
+	tp1, err := JaegerCompatibleProvider("http://localhost:4318",
+		ServiceName("jaeger-compatible-test-otlp"),
+		Environment("go-test"),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create Jaeger-compatible provider with OTLP endpoint: %v", err)
+	}
+	if tp1 == nil {
+		t.Fatal("Jaeger-compatible provider should not be nil")
+	}
+	tp1.Shutdown(context.Background())
+
+	// Test legacy Jaeger HTTP collector endpoint (should auto-convert)
+	tp2, err := JaegerCompatibleProvider("http://localhost:14268/api/traces",
+		ServiceName("jaeger-compatible-test-legacy"),
+		Environment("go-test"),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create Jaeger-compatible provider with legacy endpoint: %v", err)
+	}
+	if tp2 == nil {
+		t.Fatal("Jaeger-compatible provider should not be nil")
+	}
+	tp2.Shutdown(context.Background())
+
+	// Test legacy Jaeger gRPC collector endpoint (should auto-convert)
+	tp3, err := JaegerCompatibleProvider("localhost:14250",
+		ServiceName("jaeger-compatible-test-grpc"),
+		Environment("go-test"),
+	)
+	if err != nil {
+		t.Fatalf("Failed to create Jaeger-compatible provider with gRPC endpoint: %v", err)
+	}
+	if tp3 == nil {
+		t.Fatal("Jaeger-compatible provider should not be nil")
+	}
+	tp3.Shutdown(context.Background())
 }

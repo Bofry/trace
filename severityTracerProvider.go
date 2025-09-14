@@ -2,7 +2,6 @@ package trace
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -10,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -99,81 +98,30 @@ func OTLPGRPCProvider(endpoint string, attrs ...KeyValue) (*SeverityTracerProvid
 	return stp, nil
 }
 
-// convertJaegerToOTLP converts Jaeger endpoint to OTLP endpoint
-func convertJaegerToOTLP(jaegerURL string) string {
-	parsed, err := url.Parse(jaegerURL)
-	if err != nil {
-		// Fallback to default OTLP endpoint
-		return "http://localhost:4318"
+// JaegerCompatibleProvider creates a provider that sends traces to Jaeger using OTLP
+// This is a convenience function for testing with local Jaeger instances.
+//
+// For Jaeger v1.35+, it uses the OTLP endpoint (port 4318 for HTTP).
+// For older Jaeger versions, you may need to use the legacy Jaeger collector ports.
+//
+// Usage:
+//   tp, err := trace.JaegerCompatibleProvider("http://localhost:4318", attrs...)
+//   // Or for Jaeger running on legacy port: "http://localhost:14268" (will auto-convert to OTLP)
+func JaegerCompatibleProvider(endpoint string, attrs ...KeyValue) (*SeverityTracerProvider, error) {
+	// Auto-detect and convert legacy Jaeger endpoints to OTLP
+	if strings.Contains(endpoint, ":14268") {
+		// Convert Jaeger HTTP collector (14268) to OTLP HTTP (4318)
+		endpoint = strings.Replace(endpoint, ":14268", ":4318", 1)
+		// Remove Jaeger-specific path
+		endpoint = strings.Replace(endpoint, "/api/traces", "", 1)
+	} else if strings.Contains(endpoint, ":14250") {
+		// Convert Jaeger gRPC collector (14250) to OTLP gRPC (4317)
+		endpoint = strings.Replace(endpoint, ":14250", ":4317", 1)
+		return OTLPGRPCProvider(endpoint, attrs...)
 	}
 
-	// Convert known Jaeger ports to OTLP ports
-	host := parsed.Hostname()
-	port := parsed.Port()
-
-	var newPort string
-	switch port {
-	case "14268": // Jaeger HTTP collector
-		newPort = "4318"
-	case "14250": // Jaeger gRPC collector
-		newPort = "4317"
-	default:
-		// Default to OTLP HTTP port if no specific port mapping
-		newPort = "4318"
-	}
-
-	// Reconstruct URL with OTLP endpoint
-	var otlpURL strings.Builder
-	otlpURL.WriteString(parsed.Scheme)
-	otlpURL.WriteString("://")
-	otlpURL.WriteString(host)
-	otlpURL.WriteString(":")
-	otlpURL.WriteString(newPort)
-
-	return otlpURL.String()
+	// Use OTLP HTTP by default
+	return OTLPProvider(endpoint, attrs...)
 }
 
-// JaegerProvider creates a provider compatible with Jaeger endpoints using OTLP
-// Deprecated: Use OTLPProvider or OTLPGRPCProvider instead
-// Note: This function now uses OTLP internally. Requires Jaeger v1.35+ with OTLP support.
-func JaegerProvider(jaegerURL string, attrs ...KeyValue) (*SeverityTracerProvider, error) {
-	// Convert Jaeger endpoint to OTLP endpoint
-	otlpEndpoint := convertJaegerToOTLP(jaegerURL)
-
-	ctx := context.Background()
-	parsed, parseErr := url.Parse(otlpEndpoint)
-	if parseErr != nil {
-		return nil, fmt.Errorf("failed to parse converted OTLP endpoint %q: %w (requires Jaeger v1.35+ with OTLP support)", otlpEndpoint, parseErr)
-	}
-
-	hostPort := parsed.Host
-	if parsed.Port() == "" {
-		hostPort = hostPort + ":4318"
-	}
-
-	options := []otlptracehttp.Option{
-		otlptracehttp.WithEndpoint(hostPort),
-		otlptracehttp.WithURLPath("/v1/traces"),
-	}
-
-	if parsed.Scheme == "http" {
-		options = append(options, otlptracehttp.WithInsecure())
-	}
-
-	exp, err := otlptracehttp.New(ctx, options...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create OTLP exporter for endpoint %q: %w (ensure Jaeger v1.35+ with OTLP enabled)", otlpEndpoint, err)
-	}
-
-	tp := tracesdk.NewTracerProvider(
-		tracesdk.WithBatcher(exp),
-		tracesdk.WithResource(resource.NewWithAttributes(
-			semconv.SchemaURL,
-			attrs...,
-		)),
-	)
-
-	stp := CreateSeverityTracerProvider(tp)
-	return stp, nil
-}
 

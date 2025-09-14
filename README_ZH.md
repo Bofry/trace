@@ -1,7 +1,7 @@
 # Trace - 基於嚴重性的分散式追蹤庫
 
 [![Go Version](https://img.shields.io/badge/go-1.24+-blue.svg)](https://golang.org/dl/)
-[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-v1.16.0-orange.svg)](https://opentelemetry.io/)
+[![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-v1.38.0-orange.svg)](https://opentelemetry.io/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Bofry/trace)](https://goreportcard.com/report/github.com/Bofry/trace)
 [![Documentation](https://img.shields.io/badge/docs-README-blue.svg)](README_ZH.md)
@@ -40,8 +40,8 @@ import (
 )
 
 func main() {
-    // 1. 建立 TracerProvider
-    tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+    // 1. 建立 TracerProvider (推薦使用 OTLP)
+    tp, err := trace.OTLPProvider("http://localhost:4318",
         trace.ServiceName("my-service"),
         trace.Environment("production"),
         trace.Pid(),
@@ -209,8 +209,8 @@ tp, err := trace.OTLPProvider("http://localhost:4318",
     trace.Version("v1.0.0"),
 )
 
-// 或使用 Jaeger Provider（向下相容）
-tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+// Jaeger 相容模式（自動轉換為 OTLP）
+tp, err := trace.JaegerCompatibleProvider("http://localhost:14268/api/traces",
     trace.ServiceName("my-service"),
     trace.Environment("production"),
 )
@@ -285,8 +285,8 @@ extractedSpan := tracer.Extract(ctx, carrier, "downstream-operation")
 ### Provider 選項
 
 ```go
-// 完整配置範例
-tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+// 完整配置範例（推薦使用 OTLP Provider）
+tp, err := trace.OTLPProvider("http://localhost:4318",
     // 服務識別
     trace.ServiceName("my-service"),
     trace.Environment("production"),
@@ -370,7 +370,7 @@ go test -bench=. -benchmem
 ```textplain
 測試覆蓋率: 90.7%
 通過測試: 89/89 個測試
-基準測試: 19 個效能測試
+基準測試: 20 個效能測試
 並發測試: 全域狀態競爭條件驗證
 ```
 
@@ -389,18 +389,21 @@ go test -bench=. -benchmem
 最新的基準測試結果顯示優異的效能表現：
 
 ```textplain
-BenchmarkSeveritySpan_Debug      3,015,145 ops/sec    413.6 ns/op    905 B/op
-BenchmarkSeveritySpan_Info       3,241,004 ops/sec    411.5 ns/op    899 B/op
-BenchmarkSeveritySpan_Warning    3,117,613 ops/sec    428.5 ns/op    902 B/op
-BenchmarkSeveritySpan_NoopSpan  41,277,481 ops/sec     27.6 ns/op     72 B/op
+BenchmarkSeveritySpan_Debug     42,077,848 ops/sec     28.44 ns/op     72 B/op    2 allocs/op
+BenchmarkSeveritySpan_Info      43,334,922 ops/sec     27.89 ns/op     72 B/op    2 allocs/op
+BenchmarkSeveritySpan_Warning   44,706,405 ops/sec     27.77 ns/op     72 B/op    2 allocs/op
+BenchmarkExpandObject_String    72,578,631 ops/sec     16.97 ns/op     64 B/op    1 allocs/op
+BenchmarkSpanFromContext       450,409,731 ops/sec      2.676 ns/op     0 B/op    0 allocs/op
+BenchmarkNoopEvent_Operations  665,452,064 ops/sec      1.811 ns/op     0 B/op    0 allocs/op
 ```
 
 **關鍵指標：**
 
-- **高吞吐量**：每秒處理超過 300 萬次 severity 操作
-- **低延遲**：單次操作僅需 ~400 納秒
-- **NoopSpan 優化**：無追蹤時開銷極低（僅 28ns）
-- **記憶體效率**：每次操作約 900 bytes，9 次分配
+- **超高吞吐量**：每秒處理超過 4,000 萬次 severity 操作
+- **極低延遲**：單次操作僅需 ~28 納秒
+- **上下文操作優化**：取得 span 僅需 3 納秒
+- **記憶體效率**：每次操作僅 72 bytes，2 次分配
+- **無操作優化**：無追蹤時開銷幾乎為零（1.8ns）
 
 ### 無操作最佳化
 
@@ -485,9 +488,9 @@ span.Warning("第三個事件")
 
 #### TracerProvider 方法
 
-- `JaegerProvider(url, attrs...)`: 建立 Jaeger 相容的 provider
-- `OTLPProvider(endpoint, attrs...)`: 建立 OTLP HTTP provider
+- `OTLPProvider(endpoint, attrs...)`: **推薦** - 建立 OTLP HTTP provider
 - `OTLPGRPCProvider(endpoint, attrs...)`: 建立 OTLP gRPC provider
+- `JaegerCompatibleProvider(url, attrs...)`: Jaeger 相容層（自動轉換端點到 OTLP）
 
 #### Tracer 方法
 
@@ -522,4 +525,6 @@ span.Warning("第三個事件")
 
 ---
 
-**注意**: 本庫已完全移除對已棄用的 Jaeger exporter 的依賴，全面使用現代的 OTLP 協定，同時保持向下相容性。
+**注意**: 本庫使用現代的 OTLP 協定作為主要傳輸方式。
+如需 Jaeger 相容性，請使用 `JaegerCompatibleProvider`，它會自動
+將 Jaeger 端點轉換為 OTLP（端口 14268→4318，14250→4317）。

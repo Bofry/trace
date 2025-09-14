@@ -11,7 +11,7 @@ import (
 )
 
 func Example() {
-	tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+	tp, err := trace.OTLPProvider("http://localhost:4318",
 		trace.ServiceName("trace-demo"),
 		trace.Environment("go-test"),
 		trace.Pid(),
@@ -47,7 +47,7 @@ func Example() {
 }
 
 func ExampleSeverityTracer_Start() {
-	tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+	tp, err := trace.OTLPProvider("http://localhost:4318",
 		trace.ServiceName("trace-demo"),
 		trace.Environment("go-test"),
 		trace.Pid(),
@@ -102,7 +102,7 @@ func ExampleSeverityTracer_Start() {
 }
 
 func ExampleSeverityTracer_Link() {
-	tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+	tp, err := trace.OTLPProvider("http://localhost:4318",
 		trace.ServiceName("trace-demo"),
 		trace.Environment("go-test"),
 		trace.Pid(),
@@ -151,7 +151,7 @@ func ExampleSeverityTracer_Link() {
 }
 
 func ExampleSeverityTracer_ExtractWithPropagator() {
-	tp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+	tp, err := trace.OTLPProvider("http://localhost:4318",
 		trace.ServiceName("trace-demo"),
 		trace.Environment("go-test"),
 		trace.Pid(),
@@ -191,7 +191,7 @@ func ExampleSeverityTracer_ExtractWithPropagator() {
 
 	// subroutine
 	var bar = func(carrier propagation.TextMapCarrier, arg string) {
-		bartp, err := trace.JaegerProvider("http://localhost:14268/api/traces",
+		bartp, err := trace.OTLPProvider("http://localhost:4318",
 			trace.ServiceName("trace-demo-outside-boundary"),
 			trace.Environment("go-test"),
 			trace.Pid(),
